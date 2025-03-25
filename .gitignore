@@ -8,7 +8,7 @@ venv/
 .env/
 
 # Ignore data files
-#/data/
+/data/
 
 # Ignore Jupyter notebook checkpoints
 .ipynb_checkpoints/
