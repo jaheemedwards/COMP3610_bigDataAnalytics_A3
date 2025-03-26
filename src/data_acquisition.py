@@ -1,12 +1,29 @@
 from bigdata_a3_utils import *
 
-# Define the base save path for storing the dataset
-base_save_path = Path(r"data/raw")
-
-# Call the function to download all categories
-download_all_amazon_reviews(
-    base_save_path=base_save_path,
-    compress=True,  # Set to True if you want the downloaded datasets to be compressed
-    compression_format="gz",  # You can change this to "bz2" or "xz" based on preference
-    compression_level=6  # Adjust compression level (1-9) based on speed/size preference
-)
+def get_amazon_reviews_dataset():
+    """
+    Downloads, extracts, and loads all Amazon review datasets into a dictionary.
+    
+    Returns:
+        dict: A dictionary where keys are dataset categories and values are loaded data.
+    """
+    base_save_path = Path("data/raw")
+    '''
+    # Download datasets (if not already downloaded)
+    download_all_amazon_reviews(
+        base_save_path=base_save_path,
+        compress=True,
+        compression_format="gz",
+        compression_level=6
+    )
+    '''
+    # Find all .tar.gz files
+    compressed_files = list(base_save_path.glob("*.tar.gz"))
+    
+    # Load datasets into a dictionary
+    datasets = {
+        file.stem.replace("raw_review_", ""): load_compressed_dataset(str(file)) 
+        for file in compressed_files
+    }
+    
+    return datasets
