@@ -1,69 +1,97 @@
 from data_acquisition import *
 import pandas as pd
 import re
+import unicodedata
 
 def clean_dataframe(reviews_df, meta_df):
-    # Debugging: Check the first few rows and shape of both DataFrames
-    print("Reviews DataFrame Shape:", reviews_df.shape)
-    print("Meta DataFrame Shape:", meta_df.shape)
+    """
+    Cleans and merges review and metadata DataFrames.
+    """
+
+    # Normalize and clean 'parent_asin' columns
+    for df in [reviews_df, meta_df]:
+        df["parent_asin"] = df["parent_asin"].astype(str).str.strip()
+        df["parent_asin"] = df["parent_asin"].apply(lambda x: unicodedata.normalize("NFKC", x))
+
+    # Merge DataFrames on 'parent_asin'
+    merged_df = reviews_df.merge(meta_df, on="parent_asin", how="inner")
     
-    print("Reviews DataFrame Sample:\n", reviews_df.head())
-    print("Meta DataFrame Sample:\n", meta_df.head())
+    # Data Cleaning
+    merged_df = merged_df[merged_df['rating'].between(1, 5)]  # Keep valid ratings
     
-    # Merge on parent_asin
-    merged_df = reviews_df.merge(meta_df, on='parent_asin', how='left')
+    merged_df.dropna(subset=['text'], inplace=True)  # Remove empty reviews
     
-    # Debugging: Check the result of the merge
-    print("Merged DataFrame Shape:", merged_df.shape)
-    print("Merged DataFrame Sample:\n", merged_df.head())
+    merged_df['store'] = merged_df['store'].fillna("Unknown")  # Fill missing brands
     
-    # Handle Invalid / Missing Values
-    merged_df = merged_df[merged_df['rating'].between(1, 5)]  # Keep ratings in [1,5]
-    merged_df = merged_df.dropna(subset=['text'])  # Drop rows with empty review text
+    # Remove duplicate reviews
+    merged_df.drop_duplicates(subset=['user_id', 'asin', 'text'], keep='first', inplace=True)
     
-    # Fill missing brand info
-    merged_df['brand'] = merged_df['store'].fillna("Unknown")
+    # Add review length feature
+    merged_df['review_length'] = merged_df['text'].apply(lambda x: len(re.findall(r'\w+', str(x))))
+
+    # Check if 'timestamp' exists in merged_df
+    if "timestamp" in merged_df.columns:
+
+        # Convert timestamp to numeric
+        merged_df["timestamp"] = pd.to_numeric(merged_df["timestamp"], errors="coerce")
+
+        # Convert milliseconds to seconds
+        merged_df["timestamp"] = merged_df["timestamp"] // 1000  # Divide by 1000 to get seconds
+
+        # Identify invalid timestamps (still ensuring reasonable Unix time range)
+        invalid_timestamps = merged_df[
+            (merged_df["timestamp"] <= 0) | (merged_df["timestamp"] >= 2**31)
+        ]
     
-    # Remove Duplicates
-    merged_df = merged_df.drop_duplicates(subset=['user_id', 'asin', 'text'], keep='first')
+        if not invalid_timestamps.empty:
+            print("\n=== Invalid Timestamps Found ===")
+            print(invalid_timestamps[["timestamp"]].head(10)) 
+
+        # Filter valid timestamps
+        merged_df = merged_df[
+            (merged_df["timestamp"] > 0) & (merged_df["timestamp"] < 2**31)
+        ]
     
-    # Derived Columns
-    merged_df['review_length'] = merged_df['text'].apply(lambda x: len(re.findall(r'\w+', str(x))))  # Count words
-    
-    # Convert timestamp safely
-    if 'timestamp' in merged_df.columns:
-        merged_df['timestamp'] = pd.to_numeric(merged_df['timestamp'], errors='coerce')  # Convert to numeric
-        merged_df = merged_df[(merged_df['timestamp'] > 0) & (merged_df['timestamp'] < 2**31)]  # Remove out-of-bounds values
-        merged_df['year'] = pd.to_datetime(merged_df['timestamp'], unit='s', errors='coerce').dt.year
-    
+        print("\n=== Valid Timestamp Count ===", len(merged_df))
+
+        # Extract year from valid timestamps
+        if not merged_df.empty:
+            merged_df["year"] = pd.to_datetime(
+                merged_df["timestamp"], unit="s", errors="coerce"
+            ).dt.year
+        
+        else:
+            print("No valid timestamps left after filtering. Skipping year extraction.")
+
+    else:
+        print("No timestamp column found.")
+
     return merged_df
 
-
-
 def inspect_dataframe(df):
+    """
+    Displays various details about the given DataFrame.
+    """
     print("=== DataFrame Info ===")
-    print(df.info(), "\n")  # Displays data types, non-null counts, and memory usage
-
+    print(df.info(), "\n")
+    
     print("=== First 5 Rows ===")
     print(df.head(), "\n")
     
-    print("=== Shape (Rows, Columns) ===")
-    print(df.shape, "\n")
+    print("=== Shape (Rows, Columns) ===", df.shape, "\n")
     
     print("=== Data Types ===")
     print(df.dtypes, "\n")
     
-    print("=== Summary Statistics (Numerical Columns) ===")
+    print("=== Summary Statistics ===")
     print(df.describe(), "\n")
     
-    print("=== Missing Values Count ===")
+    print("=== Missing Values ===")
     print(df.isnull().sum(), "\n")
     
-    print("=== Duplicate Rows Count ===")
-    print(df.duplicated().sum(), "\n")
+    print("=== Duplicate Rows ===", df.duplicated().sum(), "\n")
     
-    print("=== Column Names ===")
-    print(df.columns.tolist(), "\n")
+    print("=== Column Names ===", df.columns.tolist(), "\n")
     
-    print("=== Random Sample (5 Rows) ===")
+    print("=== Random Sample ===")
     print(df.sample(5), "\n")

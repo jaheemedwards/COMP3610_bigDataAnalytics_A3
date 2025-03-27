@@ -6,8 +6,6 @@ from recommender_system import *
 from clustering import *
 
 
-
-
 '''
 # Step 1: Download datasets (if not already downloaded)
 #download_successful = download_amazon_reviews()
@@ -40,5 +38,5 @@ merged_df = clean_dataframe(reviews_df, meta_df)
 
 inspect_dataframe(merged_df)
 
-save_dataframe(merged_df, 'data\processed')
+save_dataframe(merged_df, 'data\processed', 'unified_data')
 
