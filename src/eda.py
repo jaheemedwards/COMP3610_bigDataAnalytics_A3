@@ -1,8 +1,19 @@
+from data_acquisition import *
 from data_cleaning import *
 import pandas as pd
 import matplotlib.pyplot as plt
-plt.ion()
 import seaborn as sns
+import ast
+
+def extract_brand(details):
+    try:
+        if isinstance(details, str):
+            # Convert string representation of a dictionary into an actual dictionary
+            details = ast.literal_eval(details)
+        # If it's a dictionary, get the 'Brand' key, else return None
+        return details.get('Brand') if isinstance(details, dict) else None
+    except Exception as e:
+        return None
 
 def run_eda(merged_df):
     # 1. Histogram of Star Ratings
@@ -11,7 +22,7 @@ def run_eda(merged_df):
     plt.title("Histogram of Star Ratings")
     plt.xlabel("Rating")
     plt.ylabel("Count")
-    plt.show(block=True)
+    plt.show()
 
     # 2. Top 10 Categories by Review Count
     top_categories = merged_df["main_category"].value_counts().head(10)
@@ -19,21 +30,23 @@ def run_eda(merged_df):
     plt.xlabel("Category")
     plt.ylabel("Count")
     plt.xticks(rotation=45)
-    plt.show(block=True)
-    
+    plt.show()
+
     #3. Top 10 Brands by Total Review Count (Excluding "Unknown")
-    plt.figure(figsize=(12,6))
-    brand_counts = merged_df[merged_df["details"] != "Unknown"]["details"].value_counts().head(10)
-    brand_counts.plot(kind="bar", color='lightcoral')
+    # Apply the function to the 'details' column and store the result in a new column 'Brand'
+    merged_df['Extracted_Brand'] = merged_df['details'].apply(extract_brand)
+
+    top_10_brands = merged_df['Extracted_Brand'].value_counts().head(10)
+    top_10_brands.plot(kind="bar", color='lightcoral')
     plt.title("Top 10 Brands by Review Count")
     plt.xlabel("Brand")
     plt.ylabel("Review Count")
     plt.xticks(rotation=45)
-    plt.show(block=True)
+    plt.show()
 
     # 4. Time-Based Trend: Line Chart of Average Star Rating Per Year
-    if "review_date" in merged_df.columns:
-        merged_df["review_year"] = pd.to_datetime(merged_df["review_date"], unit='s').dt.year  # Convert Unix time to year
+    if "timestamp" in merged_df.columns:
+        merged_df["review_year"] = pd.to_datetime(merged_df["timestamp"], unit='s').dt.year  # Convert Unix time to year
         avg_rating_by_year = merged_df.groupby("review_year")["rating"].mean()
         
         plt.figure(figsize=(10,5))
@@ -44,7 +57,7 @@ def run_eda(merged_df):
         plt.grid(True)
         plt.xticks(rotation=45)
         plt.tight_layout()
-        plt.show(block=True)
+        plt.show()
     else:
         print("Column 'review_date' not found. Skipping time-based trend plot.")
     

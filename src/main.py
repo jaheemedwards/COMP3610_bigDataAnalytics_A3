@@ -40,3 +40,7 @@ inspect_dataframe(merged_df)
 
 save_dataframe(merged_df, 'data\processed', 'unified_data')
 
+print("&&&&&&&&&&&  running eda  &&&&&&&&&&&")
+
+run_eda(merged_df)
+
