@@ -15,17 +15,17 @@ def extract_brand(details):
     except Exception as e:
         return None
 
-def run_eda(merged_df):
+def run_eda(df):
     # 1. Histogram of Star Ratings
     plt.figure(figsize=(10,5))
-    sns.histplot(merged_df["rating"], bins=5, kde=True)
+    sns.histplot(df["rating"], bins=5, kde=True)
     plt.title("Histogram of Star Ratings")
     plt.xlabel("Rating")
     plt.ylabel("Count")
     plt.show()
 
     # 2. Top 10 Categories by Review Count
-    top_categories = merged_df["main_category"].value_counts().head(10)
+    top_categories = df["main_category"].value_counts().head(10)
     top_categories.plot(kind="bar", title="Top 10 Categories by Review Count")
     plt.xlabel("Category")
     plt.ylabel("Count")
@@ -34,9 +34,9 @@ def run_eda(merged_df):
 
     #3. Top 10 Brands by Total Review Count (Excluding "Unknown")
     # Apply the function to the 'details' column and store the result in a new column 'Brand'
-    merged_df['Extracted_Brand'] = merged_df['details'].apply(extract_brand)
+    df['Extracted_Brand'] = df['details'].apply(extract_brand)
 
-    top_10_brands = merged_df['Extracted_Brand'].value_counts().head(10)
+    top_10_brands = df['Extracted_Brand'].value_counts().head(10)
     top_10_brands.plot(kind="bar", color='lightcoral')
     plt.title("Top 10 Brands by Review Count")
     plt.xlabel("Brand")
@@ -45,9 +45,9 @@ def run_eda(merged_df):
     plt.show()
 
     # 4. Time-Based Trend: Line Chart of Average Star Rating Per Year
-    if "timestamp" in merged_df.columns:
-        merged_df["review_year"] = pd.to_datetime(merged_df["timestamp"], unit='s').dt.year  # Convert Unix time to year
-        avg_rating_by_year = merged_df.groupby("review_year")["rating"].mean()
+    if "timestamp" in df.columns:
+        df["review_year"] = pd.to_datetime(df["timestamp"], unit='s').dt.year  # Convert Unix time to year
+        avg_rating_by_year = df.groupby("review_year")["rating"].mean()
         
         plt.figure(figsize=(10,5))
         avg_rating_by_year.plot(kind="line", marker='o', color='b')
@@ -63,4 +63,4 @@ def run_eda(merged_df):
     
     
     # 5. Correlation between Review Length and Rating
-    print("Pearson Correlation between Review Length and Rating:", merged_df[["review_length", "rating"]].corr().iloc[0,1])
+    print("Pearson Correlation between Review Length and Rating:", df[["review_length", "rating"]].corr().iloc[0,1])

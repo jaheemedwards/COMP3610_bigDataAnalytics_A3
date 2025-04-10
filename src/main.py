@@ -44,3 +44,7 @@ print("&&&&&&&&&&&  running eda  &&&&&&&&&&&")
 
 run_eda(merged_df)
 
+print("&&&&&&&&&&&  running sentiment analysis  &&&&&&&&&&&")
+
+run_sentiment_analysis(merged_df)
+
