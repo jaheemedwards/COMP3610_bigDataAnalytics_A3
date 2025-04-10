@@ -38,5 +38,13 @@ merged_df = clean_dataframe(reviews_df, meta_df)
 
 inspect_dataframe(merged_df)
 
-save_dataframe(merged_df, 'data\processed', 'unified_data')
+#save_dataframe(merged_df, 'data\processed', 'unified_data')
+
+print("&&&&&&&&&&&  running eda  &&&&&&&&&&&")
+
+run_eda(merged_df)
+
+print("&&&&&&&&&&&  running sentiment analysis  &&&&&&&&&&&")
+
+run_sentiment_analysis(merged_df)
 
