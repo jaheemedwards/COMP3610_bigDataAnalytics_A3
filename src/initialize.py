@@ -18,6 +18,7 @@ def create_project_directories(base_path):
     """Create necessary project directories under the 'data' directory if they do not exist."""
     # Paths to the three directories under 'data'
     data_directories = [
+        'data/cleaned',
         'data/raw', 
         'data/processed/models', 
         'data/logs'
@@ -44,6 +45,3 @@ def initialize_project():
     
     # Step 2: Set full control permissions for the 'data' folder and its subdirectories
     set_full_control(data_folder)
-
-if __name__ == "__main__":
-    initialize_project()

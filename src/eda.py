@@ -24,7 +24,7 @@ def run_star_rating_histogram(base_cleaned_path):
                 df = pd.read_parquet(file_path, columns=["rating"])
                 all_ratings.append(df["rating"])
             except:
-                print(f"⚠ Skipping {file}: 'rating' column not found.")
+                print(f"⚠️ Skipping {file}: 'rating' column not found.")
 
     if all_ratings:
         
@@ -38,25 +38,31 @@ def run_star_rating_histogram(base_cleaned_path):
         plt.figure(figsize=(12, 6))
 
     # Plot histogram with matplotlib and set alignment to 'center'
-        plt.hist(df["rating"], bins=bins, edgecolor='black', align='mid', color='skyblue')
+        counts, bins, patches = plt.hist(
+        ratings_series, bins=bins, edgecolor='black', align='mid', color='skyblue'
+        )
 
         plt.title("Histogram of Star Ratings")
         plt.xlabel("Rating")
         plt.ylabel("Count")
         plt.xticks([1, 2, 3, 4, 5])
-
-    # 🔢 Format y-axis to show regular numbers with commas
         plt.gca().yaxis.set_major_formatter(mtick.FuncFormatter(lambda x, _: f'{int(x):,}'))
-        plt.grid(True, axis='y', linestyle='--', alpha=0.7)  # Grid lines on the y-axis
+        plt.grid(True, axis='y', linestyle='--', alpha=0.7)
 
-    # 📐 Scale y-axis so tallest bar takes ~75% of the graph height
+        # 📐 Scale y-axis so tallest bar takes ~75% of the graph height
         y_max = plt.gca().get_ylim()[1]
-        plt.ylim(0, y_max * 1.33)  # 1 / 0.75 ≈ 1.33
+        plt.ylim(0, y_max * 1.33)
 
-    # Annotate the total number of ratings
-        plt.text(0.95, 0.95, f'Total Ratings: {total_ratings:,}', ha='right', va='top', 
-                 transform=plt.gca().transAxes, fontsize=12, color='black', 
-                 bbox=dict(facecolor='white', edgecolor='none', boxstyle='round,pad=0.3'))
+        # 📊 Add percentage labels above each bar
+        for count, patch in zip(counts, patches):
+            percentage = (count / total_ratings) * 100
+            plt.text(patch.get_x() + patch.get_width() / 2, count + y_max * 0.01,
+                 f'{percentage:.1f}%', ha='center', va='bottom', fontsize=10)
+
+        # 🧮 Annotate the total number of ratings
+        plt.text(0.95, 0.95, f'Total Ratings: {total_ratings:,}', ha='right', va='top',
+            transform=plt.gca().transAxes, fontsize=12, color='black',
+            bbox=dict(facecolor='white', edgecolor='none', boxstyle='round,pad=0.3'))
 
         plt.tight_layout()
         save_plot(plt, "star_rating_histogram.png")
