@@ -6,7 +6,8 @@ __pycache__/
 # Ignore virtual environments
 venv/
 .env/
-
+myenv/
+.venv/
 # Ignore data files
 /data/
 

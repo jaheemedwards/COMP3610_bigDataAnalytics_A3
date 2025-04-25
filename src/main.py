@@ -1,50 +1,57 @@
+# === Import necessary modules from each project component ===
 from data_acquisition import *
 from data_cleaning import *
 from eda import *
 from binary_sentiment import *
 from recommender_system import *
 from clustering import *
+from initialize import *
 
-
-'''
-# Step 1: Download datasets (if not already downloaded)
-#download_successful = download_amazon_reviews()
-download_successful = True
-
-if download_successful:
-    # Step 2: Load reviews and meta data after successful download
-    raw_reviews_df, raw_meta_df = load_amazon_reviews()
-else:
-    print("Download failed. Cannot load datasets.")
-
-inspect_dataframes(raw_reviews_df, raw_meta_df)
-'''
-# Define directory
+# === Define directory and filenames for raw data ===
 data_dir = 'data/raw'
 reviews_filename = 'reviews'
 meta_filename = 'meta'
 
-'''
-save_dataframe(raw_reviews_df, data_dir, reviews_filename)
-save_dataframe(raw_meta_df, data_dir, meta_filename)
-'''
-print("&&&&&&&&&&&  cleaning dataframe  &&&&&&&&&&&")
+# === Step 0: Initialize the project (create folders, etc.) ===
+initialize_project()
 
-# Load the previously saved DataFrames
-reviews_df = load_dataframe(data_dir, reviews_filename)
-meta_df = load_dataframe(data_dir, meta_filename)
+# === Flag to toggle between using saved data or freshly downloaded data ===
+use_saved_data = False
 
+if not use_saved_data:
+    # === Step 1: Download datasets (if not already downloaded) ===
+    download_successful = download_amazon_reviews()
+
+    if download_successful:
+        print("\n✅ Download successful.")
+        # === Step 2: Load raw review and metadata ===
+        raw_reviews_df, raw_meta_df = load_amazon_reviews()
+
+        # Optional: Save the newly downloaded data
+        save_dataframe(raw_reviews_df, data_dir, reviews_filename)
+        save_dataframe(raw_meta_df, data_dir, meta_filename)
+    else:
+        print("❌ Download failed. Cannot load datasets.")
+        exit()
+
+    reviews_df = raw_reviews_df
+    meta_df = raw_meta_df
+
+else:
+    print("\n📂 Loading previously saved raw data...")
+    # === Load previously saved raw DataFrames ===
+    reviews_df = load_dataframe(data_dir, reviews_filename)
+    meta_df = load_dataframe(data_dir, meta_filename)
+
+# === Inspect raw dataframes ===
+inspect_dataframes(reviews_df, meta_df)
+
+# === Clean and merge review and metadata into one unified DataFrame ===
+print("\n>>> 🔄 Cleaning DataFrame... Please wait.\n")
 merged_df = clean_dataframe(reviews_df, meta_df)
 
+# === Inspect the cleaned and merged DataFrame ===
 inspect_dataframe(merged_df)
 
-#save_dataframe(merged_df, 'data\processed', 'unified_data')
-
-print("&&&&&&&&&&&  running eda  &&&&&&&&&&&")
-
-run_eda(merged_df)
-
-print("&&&&&&&&&&&  running sentiment analysis  &&&&&&&&&&&")
-
-run_sentiment_analysis(merged_df)
-
+# === Save the unified dataset to the processed data directory ===
+save_dataframe(merged_df, 'data/processed', 'unified_data')
