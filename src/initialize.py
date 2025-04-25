@@ -19,7 +19,7 @@ def create_project_directories(base_path):
     # Paths to the three directories under 'data'
     data_directories = [
         'data/raw', 
-        'data/processed', 
+        'data/processed/models', 
         'data/logs'
     ]
     
