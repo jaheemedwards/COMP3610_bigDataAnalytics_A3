@@ -1,11 +1,7 @@
 # === Import necessary modules from each project component ===
+from initialize import *
 from data_acquisition import *
 from data_cleaning import *
-from eda import *
-from binary_sentiment import *
-from recommender_system import *
-from clustering import *
-from initialize import *
 
 # === Define directory and filenames for raw data ===
 data_dir = 'data/raw'
