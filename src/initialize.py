@@ -21,7 +21,8 @@ def create_project_directories(base_path):
         'data/cleaned',
         'data/raw', 
         'data/processed/models', 
-        'data/logs'
+        'data/logs',
+        'data/temp'
     ]
     
     for dir_name in data_directories:
